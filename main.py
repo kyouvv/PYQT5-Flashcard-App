@@ -9,6 +9,8 @@ class FlashCard(QMainWindow):
     def __init__(self):
         super().__init__()
 
+
+        self.FONTSIZEWORD = "
         self.terms = {}
         self.words = []
         self.currentWord = ''

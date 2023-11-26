@@ -20,7 +20,7 @@ class FlashCard(QMainWindow):
         self.removedWord = ''
 
 
-        uic.loadUi('menuu.ui', self)
+        uic.loadUi('C:/Users/allen/Desktop/qtflashcard/PYQT5-Flashcard-App/menuu.ui', self)
         self.displayField.setReadOnly(True)
         self.displayField.setAlignment(QtCore.Qt.AlignCenter)
         self.addWordButton.clicked.connect(self.addWord)
@@ -64,6 +64,9 @@ class FlashCard(QMainWindow):
                 self.index = len(self.words) - 1    
             self.currentWord = self.words[self.index]
             self.updateUI()
+            print(self.index)
+            print(self.currentWord)
+
 
     def nextWord(self):
         if self.words:
@@ -75,6 +78,8 @@ class FlashCard(QMainWindow):
                 self.index = 0
             self.currentWord = self.words[self.index]
             self.updateUI()
+            print(self.index)
+            print(self.currentWord)
 
     def updateUI(self):
         if self.currentWord:
@@ -106,13 +111,16 @@ class FlashCard(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Load Flashcards', '', 'JSON Files (*.json);;All Files (*)')
         
         if file_path:
+            print(self.terms, self.words)
             self.terms = {}
             self.words = []
+            print(self.terms, self.words)
             with open(file_path, 'r') as file:
                 data = json.load(file)
                 self.terms = data.get('terms', {})
                 self.words = list(self.terms.keys())
                 self.index = 0
+                self.currentWord = ''
                 self.updateUI()
         print(file_path)
         print(_)
@@ -143,15 +151,18 @@ class FlashCard(QMainWindow):
         if self.path:
             selectedItem = self.setListWidget.currentItem()
             if selectedItem:
+                print(self.terms, self.words)
                 self.selected = selectedItem.text()
                 self.terms = {}
                 self.words = []
+                print(self.terms, self.words)
                 file = self.path + '/' + str(self.selected)
                 with open(file, 'r') as f:
                     data = json.load(f)
                     self.terms = data.get('terms', {})
                     self.words = list(self.terms.keys())
                     self.index = 0
+                    self.currentWord = ''
             if self.words:
                 self.index = (self.index - 1) % len(self.words)
                 self.currentWord = self.words[self.index]

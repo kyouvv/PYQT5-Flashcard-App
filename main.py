@@ -3,11 +3,13 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 import sys
 import json
 import os
+from flashcardui import Ui_mainApplication
 
 
-class FlashCard(QMainWindow):
+class FlashCard(QMainWindow, Ui_mainApplication):
     def __init__(self):
-        super().__init__()
+        super(FlashCard, self).__init__()
+        self.setupUi(self)
 
         self.terms = {}
         self.words = []
@@ -19,8 +21,6 @@ class FlashCard(QMainWindow):
         self.selected = None
         self.removedWord = ''
 
-
-        uic.loadUi('C:/Users/allen/Desktop/qtflashcard/PYQT5-Flashcard-App/menuu.ui', self)
         self.displayField.setReadOnly(True)
         self.displayField.setAlignment(QtCore.Qt.AlignCenter)
         self.addWordButton.clicked.connect(self.addWord)

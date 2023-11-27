@@ -19,6 +19,7 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
         self.path = ''
         self.getFilesItem = None
         self.selected = ''
+        self.loadedFile = False
 
         self.displayField.setReadOnly(True)
         self.displayField.setAlignment(QtCore.Qt.AlignCenter)
@@ -63,10 +64,11 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
 
 
     def updateUI(self):
+        if not self.words:
+            self.currentWord = ''
+            self.displayField.setText('')
+
         if self.currentWord:
-            if not self.words:
-                self.currentWord = ''
-                self.displayField.setText('')
 
             if self.showingDefinition:
             # Use get method to handle the case where the key is not present
@@ -96,6 +98,7 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
                 self.terms = data.get('terms', {})
                 self.words = list(self.terms.keys())
                 self.index = 0
+                self.loadedFile = True
             if self.words:  # Check if there are words before setting currentWord
                 self.currentWord = self.words[self.index]
             else:
@@ -122,16 +125,17 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
 
     def loadCurrent(self):
         if self.path:
-            selectedItem = self.setListWidget.currentItem()
-            if selectedItem:
-                self.selected = selectedItem.text()
-                file = self.path + '/' + str(self.selected)
+            self.selected = self.setListWidget.currentItem()
+            if self.selected:
+                file_name = self.selected.text()
+                file = self.path + '/' + str(file_name)
                 with open(file, 'r') as f:
                     data = json.load(f)
                     self.terms = data.get('terms', {})
                     self.words = list(self.terms.keys())
                     self.index = 0
                     self.currentWord = ''
+                    self.loadedFile = True
             if self.words:  # Check if there are words before setting currentWord
                 self.currentWord = self.words[self.index]
             else:
@@ -141,7 +145,7 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
             self.updateUI()
     
     def saveCurrent(self):
-         if self.terms != {}:
+         if self.terms != {} and self.loadedFile == False:
             file_path, _ = QFileDialog.getSaveFileName(self, 'Save Flashcards', '', 'JSON Files (*.json);;All Files (*)')
             if file_path:
                 with open(file_path, 'w') as file:
@@ -149,10 +153,9 @@ class FlashCardApp(QMainWindow, FlashcardMenu):
                 self.getFiles()
          else:
             if self.path:
-                selectedItem = self.setListWidget.currentItem()
-                if selectedItem:
-                    self.selected = selectedItem.text()
-                    file = self.path + '/' + self.selected
+                if self.selected:
+                    file_name = self.selected.text()
+                    file = self.path + '/' + file_name
                     with open(file, 'w') as f:
                         json.dump({'terms': self.terms}, f)
                         self.getFiles()

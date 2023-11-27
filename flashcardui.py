@@ -1,9 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
-class Ui_mainApplication(object):
+class FlashcardMenu(object):
     def setupUi(self, mainApplication):
-        mainApplication.setObjectName("mainApplication")
+        mainApplication.setObjectName("FlashCard App By: Allen")
         mainApplication.resize(505, 595)
         self.centralwidget = QtWidgets.QWidget(mainApplication)
         self.centralwidget.setObjectName("centralwidget")

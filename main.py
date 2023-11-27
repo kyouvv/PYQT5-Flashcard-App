@@ -3,14 +3,13 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 import sys
 import json
 import os
-from flashcardui import Ui_mainApplication
+from flashcardui import FlashcardMenu
 
 
-class FlashCard(QMainWindow, Ui_mainApplication):
+class FlashCardApp(QMainWindow, FlashcardMenu):
     def __init__(self):
-        super(FlashCard, self).__init__()
+        super(FlashCardApp, self).__init__()
         self.setupUi(self)
-
 
         self.FONTSIZEWORD = 40
         self.FONTSIZEDEF = 12
@@ -21,8 +20,7 @@ class FlashCard(QMainWindow, Ui_mainApplication):
         self.index = 0
         self.path = ''
         self.getFilesItem = None
-        self.selected = None
-        self.removedWord = ''
+        self.selected = ''
 
         self.displayField.setReadOnly(True)
         self.displayField.setAlignment(QtCore.Qt.AlignCenter)
@@ -39,8 +37,8 @@ class FlashCard(QMainWindow, Ui_mainApplication):
         self.show()
 
     def addWord(self):
-        word = self.wordNameInputField.text().strip()
-        definition = self.definitionInputField.toPlainText().strip()
+        word = self.wordNameInputField.text()
+        definition = self.definitionInputField.toPlainText()
         if word and definition:
             self.terms[word] = definition
             self.words = list(self.terms.keys())
@@ -64,12 +62,11 @@ class FlashCard(QMainWindow, Ui_mainApplication):
             if self.index > 0:
                 self.index -= 1
             else:
-                self.index = len(self.words) - 1    
+                self.index = len(self.words) - 1   
+            print(self.index, self.words, self.currentWord)
             self.currentWord = self.words[self.index]
-            self.updateUI()
-            print(self.index)
             print(self.currentWord)
-
+            self.updateUI()
 
     def nextWord(self):
         if self.words:
@@ -79,34 +76,36 @@ class FlashCard(QMainWindow, Ui_mainApplication):
                 self.index += 1
             else:
                 self.index = 0
+            print(self.index, self.currentWord, self.words)
             self.currentWord = self.words[self.index]
-            self.updateUI()
-            print(self.index)
             print(self.currentWord)
+            self.updateUI()
+
 
     def updateUI(self):
+        print(f"Updating UI - Index: {self.index}, Current Word: {self.currentWord}, Showing Definition: {self.showingDefinition}")
         if self.currentWord:
-            if self.displayField.toPlainText().strip() == self.removedWord and (self.index <= len(self.words) and self.index >= 0) and self.words != []:
-                self.currentWord = self.words[self.index - 1]
-            elif self.words == []:
+            if self.words == []:
                 self.currentWord = ''
                 self.displayField.setText('')
-        if self.displayField.toPlainText().strip() == '' and self.words != []:
-            self.index = 0
-            self.currentWord = self.words[self.index]
-        if self.currentWord:
+
             if self.showingDefinition:
-                # Use get method to handle the case where the key is not present
+            # Use get method to handle the case where the key is not present
                 definition = self.terms.get(self.currentWord, "Definition not available")
                 self.displayField.setText(definition)
             else:
                 self.displayField.setText(self.currentWord)
+
+            if self.displayField.toPlainText().strip() == '' and self.words != []:
+                self.index = 0
+                self.currentWord = self.words[self.index]
+
     
     def saveFile(self):
         file_path, _ = QFileDialog.getSaveFileName(self, 'Save Flashcards', '', 'JSON Files (*.json);;All Files (*)')
         if file_path:
             with open(file_path, 'w') as file:
-                json.dump({'terms': self.terms}, file, indent=4)
+                json.dump({'terms': self.terms}, file)
             print(f"Flashcards saved to {file_path}")
         self.getFiles()
 
@@ -114,19 +113,19 @@ class FlashCard(QMainWindow, Ui_mainApplication):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Load Flashcards', '', 'JSON Files (*.json);;All Files (*)')
         
         if file_path:
-            print(self.terms, self.words)
-            self.terms = {}
-            self.words = []
-            print(self.terms, self.words)
             with open(file_path, 'r') as file:
                 data = json.load(file)
                 self.terms = data.get('terms', {})
                 self.words = list(self.terms.keys())
                 self.index = 0
+            if self.words:  # Check if there are words before setting currentWord
+                self.currentWord = self.words[self.index]
+            else:
                 self.currentWord = ''
-                self.updateUI()
-        print(file_path)
-        print(_)
+
+            self.displayField.setText('')
+            self.updateUI()
+
 
     def clearField(self):
         if self.wordNameInputField.text() != '':
@@ -136,6 +135,7 @@ class FlashCard(QMainWindow, Ui_mainApplication):
             
     def getFiles(self):
         if self.path:
+            self.setListWidget.clear()
             files = os.listdir(str(self.path))
             for file in files:
                 currentFile = os.path.splitext(file)
@@ -156,9 +156,6 @@ class FlashCard(QMainWindow, Ui_mainApplication):
             if selectedItem:
                 print(self.terms, self.words)
                 self.selected = selectedItem.text()
-                self.terms = {}
-                self.words = []
-                print(self.terms, self.words)
                 file = self.path + '/' + str(self.selected)
                 with open(file, 'r') as f:
                     data = json.load(f)
@@ -166,29 +163,47 @@ class FlashCard(QMainWindow, Ui_mainApplication):
                     self.words = list(self.terms.keys())
                     self.index = 0
                     self.currentWord = ''
-            if self.words:
-                self.index = (self.index - 1) % len(self.words)
+                    print(self.terms, self.words)
+            if self.words:  # Check if there are words before setting currentWord
                 self.currentWord = self.words[self.index]
             else:
-                self.index = 0
                 self.currentWord = ''
+
+            self.displayField.setText('')
             self.updateUI()
     
     def saveCurrent(self):
-        if self.path:
-            file = self.path + '/' + self.selected
-            with open(file, 'w') as f:
-                json.dump({'terms': self.terms}, f, indent=4)
-            print(f"Flashcards saved to {file}")
-        self.getFiles()
-
+         if self.terms != {}:
+            file_path, _ = QFileDialog.getSaveFileName(self, 'Save Flashcards', '', 'JSON Files (*.json);;All Files (*)')
+            if file_path:
+                with open(file_path, 'w') as file:
+                    json.dump({'terms': self.terms}, file)
+                print(f"Flashcards saved to {file_path}")
+                self.getFiles()
+         else:
+            if self.path:
+                selectedItem = self.setListWidget.currentItem()
+                if selectedItem:
+                    print(self.terms, self.words)
+                    self.selected = selectedItem.text()
+                    file = self.path + '/' + self.selected
+                    with open(file, 'w') as f:
+                        json.dump({'terms': self.terms}, f)
+                        print(f"Flashcards saved to {file}")
+                        self.getFiles()
+       
     def removeCurrentWord(self):
         if self.currentWord:
-            self.removedWord = self.currentWord
             self.terms.pop(self.currentWord, None)
             self.words = list(self.terms.keys())
+            if self.index >= len(self.words):
+                self.index = len(self.words) - 1
+            if self.index >= 0:
+                self.currentWord = self.words[self.index]
+            else:
+                self.currentWord = ''
             self.updateUI()
 
 app = QApplication(sys.argv)
-FlashCardUI = FlashCard()
+FlashCardUI = FlashCardApp()
 app.exec_()

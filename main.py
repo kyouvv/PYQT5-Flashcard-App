@@ -11,6 +11,9 @@ class FlashCard(QMainWindow, Ui_mainApplication):
         super(FlashCard, self).__init__()
         self.setupUi(self)
 
+
+        self.FONTSIZEWORD = 40
+        self.FONTSIZEDEF = 12
         self.terms = {}
         self.words = []
         self.currentWord = ''
